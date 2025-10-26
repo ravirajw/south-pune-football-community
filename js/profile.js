@@ -4,10 +4,10 @@ function handleLogout() {
   if (confirm("Are you sure you want to logout?")) {
     isLoggedIn = false;
     currentUser = null;
-    localStorage.removeItem(CONFIG.STORAGE_KEYS.CURRENT_USER);
+    localStorage.removeItem(CONFIG.storageKeys.currentUser);
     updateAuthUI();
     closeModal(profileModal);
-    showNotification(CONFIG.MESSAGES.SUCCESS.LOGOUT);
+    showNotification(CONFIG.messages.success.logout);
 
     if (currentTab === "players") {
       loadPlayers();
@@ -24,7 +24,7 @@ function updateAuthUI() {
     const avatarDiv = document.getElementById("userAvatar");
     if (
       currentUser.avatar &&
-      currentUser.avatar !== CONFIG.DEFAULT_AVATAR
+      currentUser.avatar !== CONFIG.defaultAvatar
     ) {
       avatarDiv.innerHTML = `<img src="${currentUser.avatar}" alt="${currentUser.name}">`;
     } else {
@@ -48,7 +48,7 @@ function showProfileView() {
     const profilePicDisplay = document.getElementById("profilePicDisplay");
     if (
       currentUser.avatar &&
-      currentUser.avatar !== CONFIG.DEFAULT_AVATAR
+      currentUser.avatar !== CONFIG.defaultAvatar
     ) {
       profilePicDisplay.innerHTML = `<img src="${currentUser.avatar}" alt="${currentUser.name}">`;
     } else {
@@ -86,7 +86,7 @@ function showProfileEdit() {
 
     if (
       currentUser.avatar &&
-      currentUser.avatar !== CONFIG.DEFAULT_AVATAR
+      currentUser.avatar !== CONFIG.defaultAvatar
     ) {
       document.getElementById(
         "editProfilePreview"
@@ -136,14 +136,14 @@ function handleSaveProfile() {
     document.querySelectorAll('input[name="editPosition"]:checked')
   ).map((checkbox) => checkbox.value);
 
-  if (!name.trim() || name.trim().length < CONFIG.VALIDATION.MIN_NAME_LENGTH) {
-    showNotification(CONFIG.MESSAGES.ERROR.INVALID_NAME, "error");
+  if (!name.trim() || name.trim().length < CONFIG.validation.minNameLength) {
+    showNotification(CONFIG.messages.error.invalidName, "error");
     return;
   }
 
-  if (positions.length < CONFIG.VALIDATION.MIN_POSITIONS) {
+  if (positions.length < CONFIG.validation.minPositions) {
     document.getElementById("editPositionError").textContent =
-      CONFIG.MESSAGES.ERROR.SELECT_POSITION;
+      CONFIG.messages.error.selectPosition;
     document.getElementById("editPositionError").style.display = "block";
     return;
   }
@@ -171,13 +171,13 @@ function handleSaveProfile() {
   }
 
   // Save both to localStorage
-  localStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
+  localStorage.setItem(CONFIG.storageKeys.currentUser, JSON.stringify(currentUser));
   saveRegisteredUsers();
 
   updateAuthUI();
   showProfileView();
 
-  showNotification(CONFIG.MESSAGES.SUCCESS.PROFILE_UPDATED);
+  showNotification(CONFIG.messages.success.profileUpdated);
 
   // Refresh Players page if currently on Players tab
   if (currentTab === "players") {

@@ -1,8 +1,30 @@
 // Authentication functions
 
+// Migrate old role values from snake_case to camelCase
+function migrateRoleValues() {
+  const roleMap = {
+    'super_admin': 'superAdmin',
+    'admin': 'admin',
+    'player': 'player'
+  };
+
+  // Migrate registered users
+  registeredUsers.forEach(user => {
+    if (user.role && roleMap[user.role]) {
+      user.role = roleMap[user.role];
+    }
+  });
+
+  // Migrate current user if logged in
+  if (currentUser && currentUser.role && roleMap[currentUser.role]) {
+    currentUser.role = roleMap[currentUser.role];
+    localStorage.setItem(CONFIG.storageKeys.currentUser, JSON.stringify(currentUser));
+  }
+}
+
 // Check login status from localStorage
 function checkLoginStatus() {
-  const savedUser = localStorage.getItem(CONFIG.STORAGE_KEYS.CURRENT_USER);
+  const savedUser = localStorage.getItem(CONFIG.storageKeys.currentUser);
   if (savedUser) {
     currentUser = JSON.parse(savedUser);
     isLoggedIn = true;
@@ -12,9 +34,14 @@ function checkLoginStatus() {
 
 // Load registered users from localStorage
 function loadRegisteredUsers() {
-  const users = localStorage.getItem(CONFIG.STORAGE_KEYS.REGISTERED_USERS);
+  const users = localStorage.getItem(CONFIG.storageKeys.registeredUsers);
   if (users) {
     registeredUsers = JSON.parse(users);
+    const needsMigration = registeredUsers.some(user => user.role && user.role.includes('_'));
+    if (needsMigration) {
+      migrateRoleValues(); // Migrate old role values
+      saveRegisteredUsers(); // Save migrated data
+    }
   }
   initializeSuperAdmin();
 }
@@ -22,14 +49,14 @@ function loadRegisteredUsers() {
 // Initialize super admin user
 function initializeSuperAdmin() {
   const superAdminExists = registeredUsers.find(
-    (user) => user.mobile === CONFIG.SUPER_ADMIN.mobile && user.countryCode === CONFIG.SUPER_ADMIN.countryCode
+    (user) => user.mobile === CONFIG.superAdmin.mobile && user.countryCode === CONFIG.superAdmin.countryCode
   );
 
   if (!superAdminExists) {
-    registeredUsers.push({ ...CONFIG.SUPER_ADMIN });
+    registeredUsers.push({ ...CONFIG.superAdmin });
     saveRegisteredUsers();
   } else if (!superAdminExists.role) {
-    superAdminExists.role = CONFIG.ROLES.SUPER_ADMIN;
+    superAdminExists.role = CONFIG.roles.superAdmin;
     saveRegisteredUsers();
   }
 }
@@ -39,14 +66,14 @@ function handleLoginSendOtp() {
   const mobile = document.getElementById("loginMobileNumber").value;
   const countryCode = document.getElementById("loginCountryCode").value;
 
-  if (mobile.length !== CONFIG.VALIDATION.MOBILE_LENGTH) {
-    showNotification(CONFIG.MESSAGES.ERROR.INVALID_MOBILE, "error");
+  if (mobile.length !== CONFIG.validation.mobileLength) {
+    showNotification(CONFIG.messages.error.invalidMobile, "error");
     return;
   }
 
   const user = userExists(countryCode, mobile);
   if (!user) {
-    showNotification(CONFIG.MESSAGES.ERROR.USER_NOT_FOUND, "error");
+    showNotification(CONFIG.messages.error.userNotFound, "error");
     setTimeout(() => {
       closeModal(loginModal);
       resetLoginFlow();
@@ -66,7 +93,7 @@ function handleLoginSendOtp() {
   ).textContent = `${countryCode} ${mobile}`;
 
   startLoginOtpTimer();
-  showNotification("OTP sent successfully!");
+  showNotification(CONFIG.messages.success.otpSent);
 }
 
 function setupLoginOtpInputs() {
@@ -113,12 +140,12 @@ function handleLoginVerifyOtp() {
     .map((input) => input.value)
     .join("");
 
-  if (otp.length !== CONFIG.VALIDATION.OTP_LENGTH) {
-    showLoginOtpError(CONFIG.MESSAGES.ERROR.INCOMPLETE_OTP);
+  if (otp.length !== CONFIG.validation.otpLength) {
+    showLoginOtpError(CONFIG.messages.error.incompleteOtp);
     return;
   }
 
-  if (otp === CONFIG.DEV_OTP) {
+  if (otp === CONFIG.devOtp) {
     hideLoginOtpError();
     clearLoginOtpTimer();
 
@@ -126,23 +153,23 @@ function handleLoginVerifyOtp() {
     if (user) {
       currentUser = { ...user };
       if (!currentUser.role) {
-        currentUser.role = CONFIG.ROLES.PLAYER;
+        currentUser.role = CONFIG.roles.player;
       }
       isLoggedIn = true;
-      localStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
+      localStorage.setItem(CONFIG.storageKeys.currentUser, JSON.stringify(currentUser));
 
       updateAuthUI();
       closeModal(loginModal);
       resetLoginFlow();
 
-      showNotification(CONFIG.MESSAGES.SUCCESS.WELCOME_BACK.replace("{name}", currentUser.name));
+      showNotification(CONFIG.messages.success.login.replace("{name}", currentUser.name));
 
       if (currentTab === "players") {
         loadPlayers();
       }
     }
   } else {
-    showLoginOtpError(CONFIG.MESSAGES.ERROR.INVALID_OTP_DEV);
+    showLoginOtpError(CONFIG.messages.error.invalidOtpDev);
     loginOtpInputs.forEach((input) => {
       input.value = "";
       input.classList.add("error");
@@ -157,11 +184,11 @@ function handleLoginResendOtp() {
   loginOtpInputs[0].focus();
   hideLoginOtpError();
   startLoginOtpTimer();
-  showNotification(CONFIG.MESSAGES.SUCCESS.OTP_RESENT);
+  showNotification(CONFIG.messages.success.otpResent);
 }
 
 function startLoginOtpTimer() {
-  loginOtpTimeRemaining = CONFIG.OTP_TIMER_DURATION;
+  loginOtpTimeRemaining = CONFIG.otpTimerDuration;
   loginResendOtpBtn.disabled = true;
   updateLoginTimerDisplay();
 

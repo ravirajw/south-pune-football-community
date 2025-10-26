@@ -4,8 +4,8 @@ function handleSendOtp() {
   const mobile = document.getElementById("mobileNumber").value;
   const countryCode = document.getElementById("countryCode").value;
 
-  if (mobile.length !== CONFIG.VALIDATION.MOBILE_LENGTH) {
-    showNotification(CONFIG.MESSAGES.ERROR.INVALID_MOBILE, "error");
+  if (mobile.length !== CONFIG.validation.mobileLength) {
+    showNotification(CONFIG.messages.error.invalidMobile, "error");
     return;
   }
 
@@ -19,7 +19,7 @@ function handleSendOtp() {
   ).textContent = `${countryCode} ${mobile}`;
 
   startOtpTimer();
-  showNotification(CONFIG.MESSAGES.SUCCESS.OTP_SENT);
+  showNotification(CONFIG.messages.success.otpSent);
 }
 
 function setupOtpInputs() {
@@ -66,18 +66,18 @@ function handleVerifyOtp() {
     .map((input) => input.value)
     .join("");
 
-  if (otp.length !== CONFIG.VALIDATION.OTP_LENGTH) {
-    showOtpError(CONFIG.MESSAGES.ERROR.INCOMPLETE_OTP);
+  if (otp.length !== CONFIG.validation.otpLength) {
+    showOtpError(CONFIG.messages.error.incompleteOtp);
     return;
   }
 
-  if (otp === CONFIG.DEV_OTP) {
+  if (otp === CONFIG.devOtp) {
     hideOtpError();
     clearOtpTimer();
-    showNotification(CONFIG.MESSAGES.SUCCESS.MOBILE_VERIFIED);
+    showNotification(CONFIG.messages.success.mobileVerified);
     goToStep(2);
   } else {
-    showOtpError(CONFIG.MESSAGES.ERROR.INVALID_OTP_DEV);
+    showOtpError(CONFIG.messages.error.invalidOtpDev);
     otpInputs.forEach((input) => {
       input.value = "";
       input.classList.add("error");
@@ -92,11 +92,11 @@ function handleResendOtp() {
   otpInputs[0].focus();
   hideOtpError();
   startOtpTimer();
-  showNotification(CONFIG.MESSAGES.SUCCESS.OTP_RESENT);
+  showNotification(CONFIG.messages.success.otpResent);
 }
 
 function startOtpTimer() {
-  otpTimeRemaining = CONFIG.OTP_TIMER_DURATION;
+  otpTimeRemaining = CONFIG.otpTimerDuration;
   resendOtpBtn.disabled = true;
   updateTimerDisplay();
 
@@ -166,13 +166,13 @@ function handleCompleteRegistration() {
     document.querySelectorAll('input[name="position"]:checked')
   ).map((checkbox) => checkbox.value);
 
-  if (!name.trim() || name.trim().length < CONFIG.VALIDATION.MIN_NAME_LENGTH) {
-    showNotification(CONFIG.MESSAGES.ERROR.INVALID_NAME, "error");
+  if (!name.trim() || name.trim().length < CONFIG.validation.minNameLength) {
+    showNotification(CONFIG.messages.error.invalidName, "error");
     return;
   }
 
-  if (positions.length < CONFIG.VALIDATION.MIN_POSITIONS) {
-    positionError.textContent = CONFIG.MESSAGES.ERROR.SELECT_POSITION;
+  if (positions.length < CONFIG.validation.minPositions) {
+    positionError.textContent = CONFIG.messages.error.selectPosition;
     positionError.style.display = "block";
     return;
   }
@@ -186,9 +186,9 @@ function handleCompleteRegistration() {
     name: registrationData.name,
     mobile: registrationData.mobile,
     countryCode: registrationData.countryCode,
-    avatar: registrationData.profilePicture || CONFIG.DEFAULT_AVATAR,
+    avatar: registrationData.profilePicture || CONFIG.defaultAvatar,
     positions: registrationData.positions,
-    role: CONFIG.ROLES.PLAYER,
+    role: CONFIG.roles.player,
   };
 
   registeredUsers.push({
@@ -202,14 +202,14 @@ function handleCompleteRegistration() {
   saveRegisteredUsers();
 
   isLoggedIn = true;
-  localStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
+  localStorage.setItem(CONFIG.storageKeys.currentUser, JSON.stringify(currentUser));
 
   updateAuthUI();
   closeModal(registerModal);
   resetRegistrationFlow();
 
   showNotification(
-    CONFIG.MESSAGES.SUCCESS.REGISTRATION_SUCCESS,
+    CONFIG.messages.success.register,
     "success"
   );
 

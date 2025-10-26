@@ -16,7 +16,7 @@ let loginData = {
   countryCode: "+91",
 };
 let otpTimer = null;
-let otpTimeRemaining = CONFIG.OTP_TIMER_DURATION;
+let otpTimeRemaining = CONFIG.otpTimerDuration;
 let loginOtpTimer = null;
-let loginOtpTimeRemaining = CONFIG.OTP_TIMER_DURATION;
+let loginOtpTimeRemaining = CONFIG.otpTimerDuration;
 let registeredUsers = [];

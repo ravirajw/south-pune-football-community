@@ -1,8 +1,8 @@
 // Admin management functions
 
 function makeAdmin(countryCode, mobile) {
-  if (!currentUser || currentUser.role !== CONFIG.ROLES.SUPER_ADMIN) {
-    showNotification(CONFIG.MESSAGES.ERROR.SUPER_ADMIN_ONLY, "error");
+  if (!currentUser || currentUser.role !== CONFIG.roles.superAdmin) {
+    showNotification(CONFIG.messages.error.superAdminOnly, "error");
     return;
   }
 
@@ -11,16 +11,16 @@ function makeAdmin(countryCode, mobile) {
   );
 
   if (player) {
-    player.role = CONFIG.ROLES.ADMIN;
+    player.role = CONFIG.roles.admin;
     saveRegisteredUsers();
     loadPlayers();
-    showNotification(CONFIG.MESSAGES.SUCCESS.MADE_ADMIN.replace("{name}", player.name));
+    showNotification(CONFIG.messages.success.madeAdmin.replace("{name}", player.name));
   }
 }
 
 function removeAdmin(countryCode, mobile) {
-  if (!currentUser || currentUser.role !== CONFIG.ROLES.SUPER_ADMIN) {
-    showNotification(CONFIG.MESSAGES.ERROR.SUPER_ADMIN_ONLY, "error");
+  if (!currentUser || currentUser.role !== CONFIG.roles.superAdmin) {
+    showNotification(CONFIG.messages.error.superAdminOnly, "error");
     return;
   }
 
@@ -29,10 +29,10 @@ function removeAdmin(countryCode, mobile) {
   );
 
   if (player) {
-    player.role = CONFIG.ROLES.PLAYER;
+    player.role = CONFIG.roles.player;
     saveRegisteredUsers();
     loadPlayers();
-    showNotification(CONFIG.MESSAGES.SUCCESS.REMOVED_ADMIN.replace("{name}", player.name));
+    showNotification(CONFIG.messages.success.removedAdmin.replace("{name}", player.name));
   }
 }
 
