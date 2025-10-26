@@ -1117,33 +1117,58 @@ if ("ontouchstart" in window) {
 
 // Load and display all players
 function loadPlayers() {
+  const adminsList = document.getElementById("adminsList");
   const playersList = document.getElementById("playersList");
+  const adminsSection = document.getElementById("adminsSection");
+  const playersSection = document.getElementById("playersSection");
   const noPlayersMessage = document.getElementById("noPlayersMessage");
 
-  if (!playersList) return;
+  if (!adminsList || !playersList) return;
 
-  // Get registered users and sort alphabetically by name
-  const players = [...registeredUsers].sort((a, b) =>
-    a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-  );
+  // Separate admins and players
+  const admins = registeredUsers
+    .filter((user) => user.role === "super_admin" || user.role === "admin")
+    .sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+    );
 
-  if (players.length === 0) {
+  const players = registeredUsers
+    .filter((user) => !user.role || user.role === "player")
+    .sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+    );
+
+  // Check if there are any users at all
+  if (admins.length === 0 && players.length === 0) {
+    adminsList.innerHTML = "";
     playersList.innerHTML = "";
+    adminsSection.style.display = "none";
+    playersSection.style.display = "none";
     noPlayersMessage.style.display = "block";
     return;
   }
 
   noPlayersMessage.style.display = "none";
-  renderPlayers(players);
-}
 
-// Render players to the DOM
-function renderPlayers(players) {
-  const playersList = document.getElementById("playersList");
+  // Render admins
+  if (admins.length > 0) {
+    adminsSection.style.display = "block";
+    adminsList.innerHTML = admins
+      .map((admin) => createPlayerCard(admin))
+      .join("");
+  } else {
+    adminsSection.style.display = "none";
+  }
 
-  playersList.innerHTML = players
-    .map((player) => createPlayerCard(player))
-    .join("");
+  // Render players
+  if (players.length > 0) {
+    playersSection.style.display = "block";
+    playersList.innerHTML = players
+      .map((player) => createPlayerCard(player))
+      .join("");
+  } else {
+    playersSection.style.display = "none";
+  }
 }
 
 // Create HTML for a player card
@@ -1162,12 +1187,9 @@ function createPlayerCard(player) {
           .join("")
       : '<span class="player-position-badge">No Position</span>';
 
-  // Role badge
+  // Role badge - same for both admin and super_admin
   let roleBadgeHTML = "";
-  if (player.role === "super_admin") {
-    roleBadgeHTML =
-      '<span class="role-badge super-admin-badge">👑 Super Admin</span>';
-  } else if (player.role === "admin") {
+  if (player.role === "super_admin" || player.role === "admin") {
     roleBadgeHTML = '<span class="role-badge admin-badge">⭐ Admin</span>';
   }
 
@@ -1222,23 +1244,64 @@ function filterPlayers(searchQuery) {
     return;
   }
 
-  const filteredPlayers = registeredUsers
-    .filter((player) => player.name.toLowerCase().includes(query))
+  const adminsList = document.getElementById("adminsList");
+  const playersList = document.getElementById("playersList");
+  const adminsSection = document.getElementById("adminsSection");
+  const playersSection = document.getElementById("playersSection");
+  const noPlayersMessage = document.getElementById("noPlayersMessage");
+
+  // Filter and separate admins and players
+  const filteredAdmins = registeredUsers
+    .filter(
+      (user) =>
+        (user.role === "super_admin" || user.role === "admin") &&
+        user.name.toLowerCase().includes(query)
+    )
     .sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
     );
 
-  const playersList = document.getElementById("playersList");
-  const noPlayersMessage = document.getElementById("noPlayersMessage");
+  const filteredPlayers = registeredUsers
+    .filter(
+      (user) =>
+        (!user.role || user.role === "player") &&
+        user.name.toLowerCase().includes(query)
+    )
+    .sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+    );
 
-  if (filteredPlayers.length === 0) {
+  // Check if no results
+  if (filteredAdmins.length === 0 && filteredPlayers.length === 0) {
+    adminsList.innerHTML = "";
     playersList.innerHTML = "";
+    adminsSection.style.display = "none";
+    playersSection.style.display = "none";
     noPlayersMessage.style.display = "block";
     noPlayersMessage.innerHTML =
       "<p>No players found matching your search.</p>";
   } else {
     noPlayersMessage.style.display = "none";
-    renderPlayers(filteredPlayers);
+
+    // Render filtered admins
+    if (filteredAdmins.length > 0) {
+      adminsSection.style.display = "block";
+      adminsList.innerHTML = filteredAdmins
+        .map((admin) => createPlayerCard(admin))
+        .join("");
+    } else {
+      adminsSection.style.display = "none";
+    }
+
+    // Render filtered players
+    if (filteredPlayers.length > 0) {
+      playersSection.style.display = "block";
+      playersList.innerHTML = filteredPlayers
+        .map((player) => createPlayerCard(player))
+        .join("");
+    } else {
+      playersSection.style.display = "none";
+    }
   }
 }
 

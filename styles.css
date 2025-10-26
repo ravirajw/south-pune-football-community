@@ -901,6 +901,20 @@ body {
   box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
+.section-heading {
+  color: var(--primary-color);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  margin-top: 2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+#adminsSection .section-heading {
+  margin-top: 0;
+}
+
 .players-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -981,12 +995,6 @@ body {
   font-weight: 600;
   margin-bottom: 0.5rem;
   display: inline-block;
-}
-
-.super-admin-badge {
-  background: linear-gradient(135deg, #ffd700, #ffa500);
-  color: #000;
-  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
 }
 
 .admin-badge {
