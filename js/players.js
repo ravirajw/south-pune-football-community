@@ -10,13 +10,13 @@ function loadPlayers() {
   if (!adminsList || !playersList) return;
 
   const admins = registeredUsers
-    .filter((user) => user.role === "super_admin" || user.role === "admin")
+    .filter((user) => user.role === CONFIG.ROLES.SUPER_ADMIN || user.role === CONFIG.ROLES.ADMIN)
     .sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
     );
 
   const players = registeredUsers
-    .filter((user) => !user.role || user.role === "player")
+    .filter((user) => !user.role || user.role === CONFIG.ROLES.PLAYER)
     .sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
     );
@@ -53,7 +53,7 @@ function loadPlayers() {
 
 function createPlayerCard(player) {
   const avatarHTML =
-    player.avatar && player.avatar !== "https://via.placeholder.com/40"
+    player.avatar && player.avatar !== CONFIG.DEFAULT_AVATAR
       ? `<img src="${player.avatar}" alt="${player.name}">`
       : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
@@ -67,15 +67,15 @@ function createPlayerCard(player) {
       : '<span class="player-position-badge">No Position</span>';
 
   let roleBadgeHTML = "";
-  if (player.role === "super_admin" || player.role === "admin") {
+  if (player.role === CONFIG.ROLES.SUPER_ADMIN || player.role === CONFIG.ROLES.ADMIN) {
     roleBadgeHTML = '<span class="role-badge admin-badge">⭐ Admin</span>';
   }
 
   let adminControlsHTML = "";
   if (
     currentUser &&
-    currentUser.role === "super_admin" &&
-    player.role !== "super_admin"
+    currentUser.role === CONFIG.ROLES.SUPER_ADMIN &&
+    player.role !== CONFIG.ROLES.SUPER_ADMIN
   ) {
     const isMobile =
       player.mobile === currentUser.mobile &&
@@ -129,7 +129,7 @@ function filterPlayers(searchQuery) {
   const filteredAdmins = registeredUsers
     .filter(
       (user) =>
-        (user.role === "super_admin" || user.role === "admin") &&
+        (user.role === CONFIG.ROLES.SUPER_ADMIN || user.role === CONFIG.ROLES.ADMIN) &&
         user.name.toLowerCase().includes(query)
     )
     .sort((a, b) =>
@@ -139,7 +139,7 @@ function filterPlayers(searchQuery) {
   const filteredPlayers = registeredUsers
     .filter(
       (user) =>
-        (!user.role || user.role === "player") &&
+        (!user.role || user.role === CONFIG.ROLES.PLAYER) &&
         user.name.toLowerCase().includes(query)
     )
     .sort((a, b) =>

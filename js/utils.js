@@ -9,7 +9,7 @@ function userExists(countryCode, mobile) {
 
 // Save registered users to localStorage
 function saveRegisteredUsers() {
-  localStorage.setItem("registeredUsers", JSON.stringify(registeredUsers));
+  localStorage.setItem(CONFIG.STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(registeredUsers));
 }
 
 // Modal utilities
@@ -52,8 +52,8 @@ function showNotification(message, type = "success") {
       if (document.body.contains(notification)) {
         document.body.removeChild(notification);
       }
-    }, 300);
-  }, 3000);
+    }, CONFIG.NOTIFICATION.ANIMATION_DURATION);
+  }, CONFIG.NOTIFICATION.DURATION);
 }
 
 // Add animations for notifications

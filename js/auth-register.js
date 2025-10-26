@@ -4,8 +4,8 @@ function handleSendOtp() {
   const mobile = document.getElementById("mobileNumber").value;
   const countryCode = document.getElementById("countryCode").value;
 
-  if (mobile.length !== 10) {
-    showNotification("Please enter a valid 10-digit mobile number", "error");
+  if (mobile.length !== CONFIG.VALIDATION.MOBILE_LENGTH) {
+    showNotification(CONFIG.MESSAGES.ERROR.INVALID_MOBILE, "error");
     return;
   }
 
@@ -19,7 +19,7 @@ function handleSendOtp() {
   ).textContent = `${countryCode} ${mobile}`;
 
   startOtpTimer();
-  showNotification("OTP sent successfully!");
+  showNotification(CONFIG.MESSAGES.SUCCESS.OTP_SENT);
 }
 
 function setupOtpInputs() {
@@ -66,18 +66,18 @@ function handleVerifyOtp() {
     .map((input) => input.value)
     .join("");
 
-  if (otp.length !== 4) {
-    showOtpError("Please enter complete OTP");
+  if (otp.length !== CONFIG.VALIDATION.OTP_LENGTH) {
+    showOtpError(CONFIG.MESSAGES.ERROR.INCOMPLETE_OTP);
     return;
   }
 
-  if (otp === "0000") {
+  if (otp === CONFIG.DEV_OTP) {
     hideOtpError();
     clearOtpTimer();
-    showNotification("Mobile verified successfully!");
+    showNotification(CONFIG.MESSAGES.SUCCESS.MOBILE_VERIFIED);
     goToStep(2);
   } else {
-    showOtpError("Invalid OTP. Please enter 0000 (development mode)");
+    showOtpError(CONFIG.MESSAGES.ERROR.INVALID_OTP_DEV);
     otpInputs.forEach((input) => {
       input.value = "";
       input.classList.add("error");
@@ -92,11 +92,11 @@ function handleResendOtp() {
   otpInputs[0].focus();
   hideOtpError();
   startOtpTimer();
-  showNotification("OTP resent successfully!");
+  showNotification(CONFIG.MESSAGES.SUCCESS.OTP_RESENT);
 }
 
 function startOtpTimer() {
-  otpTimeRemaining = 30;
+  otpTimeRemaining = CONFIG.OTP_TIMER_DURATION;
   resendOtpBtn.disabled = true;
   updateTimerDisplay();
 
@@ -166,13 +166,13 @@ function handleCompleteRegistration() {
     document.querySelectorAll('input[name="position"]:checked')
   ).map((checkbox) => checkbox.value);
 
-  if (!name.trim()) {
-    showNotification("Please enter your name", "error");
+  if (!name.trim() || name.trim().length < CONFIG.VALIDATION.MIN_NAME_LENGTH) {
+    showNotification(CONFIG.MESSAGES.ERROR.INVALID_NAME, "error");
     return;
   }
 
-  if (positions.length === 0) {
-    positionError.textContent = "Please select at least one position";
+  if (positions.length < CONFIG.VALIDATION.MIN_POSITIONS) {
+    positionError.textContent = CONFIG.MESSAGES.ERROR.SELECT_POSITION;
     positionError.style.display = "block";
     return;
   }
@@ -186,9 +186,9 @@ function handleCompleteRegistration() {
     name: registrationData.name,
     mobile: registrationData.mobile,
     countryCode: registrationData.countryCode,
-    avatar: registrationData.profilePicture || "https://via.placeholder.com/40",
+    avatar: registrationData.profilePicture || CONFIG.DEFAULT_AVATAR,
     positions: registrationData.positions,
-    role: "player",
+    role: CONFIG.ROLES.PLAYER,
   };
 
   registeredUsers.push({
@@ -202,14 +202,14 @@ function handleCompleteRegistration() {
   saveRegisteredUsers();
 
   isLoggedIn = true;
-  localStorage.setItem("currentUser", JSON.stringify(currentUser));
+  localStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
 
   updateAuthUI();
   closeModal(registerModal);
   resetRegistrationFlow();
 
   showNotification(
-    "Registration successful! Welcome to South Pune Football Community!",
+    CONFIG.MESSAGES.SUCCESS.REGISTRATION_SUCCESS,
     "success"
   );
 

@@ -4,10 +4,10 @@ function handleLogout() {
   if (confirm("Are you sure you want to logout?")) {
     isLoggedIn = false;
     currentUser = null;
-    localStorage.removeItem("currentUser");
+    localStorage.removeItem(CONFIG.STORAGE_KEYS.CURRENT_USER);
     updateAuthUI();
     closeModal(profileModal);
-    showNotification("Logged out successfully!");
+    showNotification(CONFIG.MESSAGES.SUCCESS.LOGOUT);
 
     if (currentTab === "players") {
       loadPlayers();
@@ -24,7 +24,7 @@ function updateAuthUI() {
     const avatarDiv = document.getElementById("userAvatar");
     if (
       currentUser.avatar &&
-      currentUser.avatar !== "https://via.placeholder.com/40"
+      currentUser.avatar !== CONFIG.DEFAULT_AVATAR
     ) {
       avatarDiv.innerHTML = `<img src="${currentUser.avatar}" alt="${currentUser.name}">`;
     } else {
@@ -48,7 +48,7 @@ function showProfileView() {
     const profilePicDisplay = document.getElementById("profilePicDisplay");
     if (
       currentUser.avatar &&
-      currentUser.avatar !== "https://via.placeholder.com/40"
+      currentUser.avatar !== CONFIG.DEFAULT_AVATAR
     ) {
       profilePicDisplay.innerHTML = `<img src="${currentUser.avatar}" alt="${currentUser.name}">`;
     } else {
@@ -86,7 +86,7 @@ function showProfileEdit() {
 
     if (
       currentUser.avatar &&
-      currentUser.avatar !== "https://via.placeholder.com/40"
+      currentUser.avatar !== CONFIG.DEFAULT_AVATAR
     ) {
       document.getElementById(
         "editProfilePreview"
@@ -136,14 +136,14 @@ function handleSaveProfile() {
     document.querySelectorAll('input[name="editPosition"]:checked')
   ).map((checkbox) => checkbox.value);
 
-  if (!name.trim()) {
-    showNotification("Please enter your name", "error");
+  if (!name.trim() || name.trim().length < CONFIG.VALIDATION.MIN_NAME_LENGTH) {
+    showNotification(CONFIG.MESSAGES.ERROR.INVALID_NAME, "error");
     return;
   }
 
-  if (positions.length === 0) {
+  if (positions.length < CONFIG.VALIDATION.MIN_POSITIONS) {
     document.getElementById("editPositionError").textContent =
-      "Please select at least one position";
+      CONFIG.MESSAGES.ERROR.SELECT_POSITION;
     document.getElementById("editPositionError").style.display = "block";
     return;
   }
@@ -171,13 +171,13 @@ function handleSaveProfile() {
   }
 
   // Save both to localStorage
-  localStorage.setItem("currentUser", JSON.stringify(currentUser));
+  localStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
   saveRegisteredUsers();
 
   updateAuthUI();
   showProfileView();
 
-  showNotification("Profile updated successfully!");
+  showNotification(CONFIG.MESSAGES.SUCCESS.PROFILE_UPDATED);
 
   // Refresh Players page if currently on Players tab
   if (currentTab === "players") {

@@ -2,7 +2,7 @@
 
 // Check login status from localStorage
 function checkLoginStatus() {
-  const savedUser = localStorage.getItem("currentUser");
+  const savedUser = localStorage.getItem(CONFIG.STORAGE_KEYS.CURRENT_USER);
   if (savedUser) {
     currentUser = JSON.parse(savedUser);
     isLoggedIn = true;
@@ -12,7 +12,7 @@ function checkLoginStatus() {
 
 // Load registered users from localStorage
 function loadRegisteredUsers() {
-  const users = localStorage.getItem("registeredUsers");
+  const users = localStorage.getItem(CONFIG.STORAGE_KEYS.REGISTERED_USERS);
   if (users) {
     registeredUsers = JSON.parse(users);
   }
@@ -22,22 +22,14 @@ function loadRegisteredUsers() {
 // Initialize super admin user
 function initializeSuperAdmin() {
   const superAdminExists = registeredUsers.find(
-    (user) => user.mobile === "7038780055" && user.countryCode === "+91"
+    (user) => user.mobile === CONFIG.SUPER_ADMIN.mobile && user.countryCode === CONFIG.SUPER_ADMIN.countryCode
   );
 
   if (!superAdminExists) {
-    const superAdmin = {
-      name: "Raviraj Wadhwa",
-      mobile: "7038780055",
-      countryCode: "+91",
-      avatar: "https://via.placeholder.com/40",
-      positions: ["Goalkeeper"],
-      role: "super_admin",
-    };
-    registeredUsers.push(superAdmin);
+    registeredUsers.push({ ...CONFIG.SUPER_ADMIN });
     saveRegisteredUsers();
   } else if (!superAdminExists.role) {
-    superAdminExists.role = "super_admin";
+    superAdminExists.role = CONFIG.ROLES.SUPER_ADMIN;
     saveRegisteredUsers();
   }
 }
@@ -47,14 +39,14 @@ function handleLoginSendOtp() {
   const mobile = document.getElementById("loginMobileNumber").value;
   const countryCode = document.getElementById("loginCountryCode").value;
 
-  if (mobile.length !== 10) {
-    showNotification("Please enter a valid 10-digit mobile number", "error");
+  if (mobile.length !== CONFIG.VALIDATION.MOBILE_LENGTH) {
+    showNotification(CONFIG.MESSAGES.ERROR.INVALID_MOBILE, "error");
     return;
   }
 
   const user = userExists(countryCode, mobile);
   if (!user) {
-    showNotification("User not found! Please register first.", "error");
+    showNotification(CONFIG.MESSAGES.ERROR.USER_NOT_FOUND, "error");
     setTimeout(() => {
       closeModal(loginModal);
       resetLoginFlow();
@@ -121,12 +113,12 @@ function handleLoginVerifyOtp() {
     .map((input) => input.value)
     .join("");
 
-  if (otp.length !== 4) {
-    showLoginOtpError("Please enter complete OTP");
+  if (otp.length !== CONFIG.VALIDATION.OTP_LENGTH) {
+    showLoginOtpError(CONFIG.MESSAGES.ERROR.INCOMPLETE_OTP);
     return;
   }
 
-  if (otp === "0000") {
+  if (otp === CONFIG.DEV_OTP) {
     hideLoginOtpError();
     clearLoginOtpTimer();
 
@@ -134,23 +126,23 @@ function handleLoginVerifyOtp() {
     if (user) {
       currentUser = { ...user };
       if (!currentUser.role) {
-        currentUser.role = "player";
+        currentUser.role = CONFIG.ROLES.PLAYER;
       }
       isLoggedIn = true;
-      localStorage.setItem("currentUser", JSON.stringify(currentUser));
+      localStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
 
       updateAuthUI();
       closeModal(loginModal);
       resetLoginFlow();
 
-      showNotification(`Welcome back, ${currentUser.name}!`);
+      showNotification(CONFIG.MESSAGES.SUCCESS.WELCOME_BACK.replace("{name}", currentUser.name));
 
       if (currentTab === "players") {
         loadPlayers();
       }
     }
   } else {
-    showLoginOtpError("Invalid OTP. Please enter 0000 (development mode)");
+    showLoginOtpError(CONFIG.MESSAGES.ERROR.INVALID_OTP_DEV);
     loginOtpInputs.forEach((input) => {
       input.value = "";
       input.classList.add("error");
@@ -165,11 +157,11 @@ function handleLoginResendOtp() {
   loginOtpInputs[0].focus();
   hideLoginOtpError();
   startLoginOtpTimer();
-  showNotification("OTP resent successfully!");
+  showNotification(CONFIG.MESSAGES.SUCCESS.OTP_RESENT);
 }
 
 function startLoginOtpTimer() {
-  loginOtpTimeRemaining = 30;
+  loginOtpTimeRemaining = CONFIG.OTP_TIMER_DURATION;
   loginResendOtpBtn.disabled = true;
   updateLoginTimerDisplay();
 

@@ -1,8 +1,8 @@
 // Admin management functions
 
 function makeAdmin(countryCode, mobile) {
-  if (!currentUser || currentUser.role !== "super_admin") {
-    showNotification("Only super admin can make admins", "error");
+  if (!currentUser || currentUser.role !== CONFIG.ROLES.SUPER_ADMIN) {
+    showNotification(CONFIG.MESSAGES.ERROR.SUPER_ADMIN_ONLY, "error");
     return;
   }
 
@@ -11,16 +11,16 @@ function makeAdmin(countryCode, mobile) {
   );
 
   if (player) {
-    player.role = "admin";
+    player.role = CONFIG.ROLES.ADMIN;
     saveRegisteredUsers();
     loadPlayers();
-    showNotification(`${player.name} is now an admin!`);
+    showNotification(CONFIG.MESSAGES.SUCCESS.MADE_ADMIN.replace("{name}", player.name));
   }
 }
 
 function removeAdmin(countryCode, mobile) {
-  if (!currentUser || currentUser.role !== "super_admin") {
-    showNotification("Only super admin can remove admins", "error");
+  if (!currentUser || currentUser.role !== CONFIG.ROLES.SUPER_ADMIN) {
+    showNotification(CONFIG.MESSAGES.ERROR.SUPER_ADMIN_ONLY, "error");
     return;
   }
 
@@ -29,10 +29,10 @@ function removeAdmin(countryCode, mobile) {
   );
 
   if (player) {
-    player.role = "player";
+    player.role = CONFIG.ROLES.PLAYER;
     saveRegisteredUsers();
     loadPlayers();
-    showNotification(`Admin role removed from ${player.name}`);
+    showNotification(CONFIG.MESSAGES.SUCCESS.REMOVED_ADMIN.replace("{name}", player.name));
   }
 }
 
