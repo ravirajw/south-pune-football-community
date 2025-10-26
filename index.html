@@ -67,10 +67,19 @@
                 <h2>Players</h2>
                 <div class="section-content">
                     <p>Browse and connect with football players in our community.</p>
-                    <div class="placeholder-content">
-                        <div class="card">
-                            <h3>Player Directory</h3>
-                            <p>View profiles, stats, and connect with fellow players.</p>
+                    
+                    <!-- Search Bar -->
+                    <div class="search-container">
+                        <input type="text" id="playerSearch" class="search-input" placeholder="🔍 Search players by name...">
+                    </div>
+                    
+                    <!-- Players List -->
+                    <div id="playersListContainer">
+                        <div id="playersList" class="players-grid">
+                            <!-- Players will be dynamically inserted here -->
+                        </div>
+                        <div id="noPlayersMessage" class="no-players-message" style="display: none;">
+                            <p>No players found. Be the first to register!</p>
                         </div>
                     </div>
                 </div>

@@ -243,8 +243,21 @@ function setupNavigationListeners() {
         tab.addEventListener('click', () => {
             const targetTab = tab.getAttribute('data-tab');
             switchTab(targetTab);
+            
+            // Load players when Players tab is clicked
+            if (targetTab === 'players') {
+                loadPlayers();
+            }
         });
     });
+    
+    // Setup player search
+    const playerSearch = document.getElementById('playerSearch');
+    if (playerSearch) {
+        playerSearch.addEventListener('input', (e) => {
+            filterPlayers(e.target.value);
+        });
+    }
 }
 
 // Switch between navigation tabs
@@ -1005,4 +1018,90 @@ if ('ontouchstart' in window) {
     navTabs.forEach(tab => {
         tab.style.webkitTapHighlightColor = 'transparent';
     });
+}
+
+// Players Page Functions
+
+// Load and display all players
+function loadPlayers() {
+    const playersList = document.getElementById('playersList');
+    const noPlayersMessage = document.getElementById('noPlayersMessage');
+    
+    if (!playersList) return;
+    
+    // Get registered users and sort alphabetically by name
+    const players = [...registeredUsers].sort((a, b) => 
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    );
+    
+    if (players.length === 0) {
+        playersList.innerHTML = '';
+        noPlayersMessage.style.display = 'block';
+        return;
+    }
+    
+    noPlayersMessage.style.display = 'none';
+    renderPlayers(players);
+}
+
+// Render players to the DOM
+function renderPlayers(players) {
+    const playersList = document.getElementById('playersList');
+    
+    playersList.innerHTML = players.map(player => createPlayerCard(player)).join('');
+}
+
+// Create HTML for a player card
+function createPlayerCard(player) {
+    const avatarHTML = player.avatar && player.avatar !== 'https://via.placeholder.com/40'
+        ? `<img src="${player.avatar}" alt="${player.name}">`
+        : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+        </svg>`;
+    
+    const positionsHTML = player.positions && player.positions.length > 0
+        ? player.positions.map(pos => 
+            `<span class="player-position-badge">${pos}</span>`
+          ).join('')
+        : '<span class="player-position-badge">No Position</span>';
+    
+    return `
+        <div class="player-card">
+            <div class="player-avatar">
+                ${avatarHTML}
+            </div>
+            <div class="player-name">${player.name}</div>
+            <div class="player-positions">
+                ${positionsHTML}
+            </div>
+        </div>
+    `;
+}
+
+// Filter players based on search query
+function filterPlayers(searchQuery) {
+    const query = searchQuery.toLowerCase().trim();
+    
+    if (!query) {
+        loadPlayers();
+        return;
+    }
+    
+    const filteredPlayers = registeredUsers.filter(player => 
+        player.name.toLowerCase().includes(query)
+    ).sort((a, b) => 
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    );
+    
+    const playersList = document.getElementById('playersList');
+    const noPlayersMessage = document.getElementById('noPlayersMessage');
+    
+    if (filteredPlayers.length === 0) {
+        playersList.innerHTML = '';
+        noPlayersMessage.style.display = 'block';
+        noPlayersMessage.innerHTML = '<p>No players found matching your search.</p>';
+    } else {
+        noPlayersMessage.style.display = 'none';
+        renderPlayers(filteredPlayers);
+    }
 }
