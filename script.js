@@ -1,6 +1,7 @@
 // Authentication state management
 let isLoggedIn = false;
 let currentUser = null;
+let currentTab = 'tournaments'; // Track current active tab
 let registrationData = {
     mobile: '',
     countryCode: '+91',
@@ -273,6 +274,7 @@ function switchTab(tabName) {
     if (selectedTab && selectedSection) {
         selectedTab.classList.add('active');
         selectedSection.classList.add('active');
+        currentTab = tabName; // Update current tab
     }
 }
 
@@ -727,6 +729,11 @@ function handleCompleteRegistration() {
     resetRegistrationFlow();
     
     showNotification('Registration successful! Welcome to South Pune Football Community!', 'success');
+    
+    // Refresh Players page if currently on Players tab
+    if (currentTab === 'players') {
+        loadPlayers();
+    }
 }
 
 // Go to registration step
