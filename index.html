@@ -23,7 +23,11 @@
                 <!-- User Profile (shown when logged in) -->
                 <div class="user-profile" id="userProfile" style="display: none;">
                     <button class="user-profile-btn" id="userProfileBtn">
-                        <img src="https://via.placeholder.com/40" alt="User" class="user-avatar" id="userAvatar">
+                        <div class="user-avatar" id="userAvatar">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                            </svg>
+                        </div>
                         <span class="user-name" id="userName">User Name</span>
                     </button>
                 </div>
@@ -126,21 +130,195 @@
         <div class="modal-content">
             <span class="close" id="closeRegister">&times;</span>
             <h2>Register</h2>
-            <form id="registerForm">
-                <div class="form-group">
-                    <label for="registerName">Full Name</label>
-                    <input type="text" id="registerName" required>
+            
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step active" id="stepIndicator1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Mobile Verification</div>
                 </div>
-                <div class="form-group">
-                    <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" required>
+                <div class="step" id="stepIndicator2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Profile Details</div>
                 </div>
-                <div class="form-group">
-                    <label for="registerPassword">Password</label>
-                    <input type="password" id="registerPassword" required>
+            </div>
+
+            <!-- Step 1: Mobile Number & OTP -->
+            <div id="registerStep1" class="register-step active">
+                <!-- Mobile Number Form -->
+                <form id="mobileForm" class="step-form">
+                    <div class="form-group">
+                        <label for="mobileNumber">Mobile Number</label>
+                        <div class="mobile-input-group">
+                            <select id="countryCode" class="country-code">
+                                <option value="+91" selected>🇮🇳 +91</option>
+                                <option value="+1">🇺🇸 +1</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+971">🇦🇪 +971</option>
+                            </select>
+                            <input type="tel" id="mobileNumber" placeholder="Enter 10-digit mobile number" pattern="[0-9]{10}" maxlength="10" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="sendOtpBtn">Send OTP</button>
+                </form>
+
+                <!-- OTP Verification Form (Hidden initially) -->
+                <form id="otpForm" class="step-form" style="display: none;">
+                    <div class="form-group">
+                        <label>Enter 4-Digit OTP</label>
+                        <p class="otp-info">OTP sent to <span id="displayMobile"></span></p>
+                        <div class="otp-input-group">
+                            <input type="text" class="otp-input" maxlength="1" data-index="0">
+                            <input type="text" class="otp-input" maxlength="1" data-index="1">
+                            <input type="text" class="otp-input" maxlength="1" data-index="2">
+                            <input type="text" class="otp-input" maxlength="1" data-index="3">
+                        </div>
+                        <div class="otp-error" id="otpError" style="display: none;"></div>
+                    </div>
+                    <div class="otp-actions">
+                        <button type="button" class="btn btn-link" id="resendOtpBtn" disabled>
+                            Resend OTP (<span id="otpTimer">30</span>s)
+                        </button>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Verify OTP</button>
+                </form>
+            </div>
+
+            <!-- Step 2: Profile Details -->
+            <div id="registerStep2" class="register-step">
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label for="registerName">Full Name <span class="required">*</span></label>
+                        <input type="text" id="registerName" placeholder="Enter your full name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profilePicture">Profile Picture (Optional)</label>
+                        <div class="profile-picture-input">
+                            <input type="file" id="profilePictureFile" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-secondary" id="uploadPhotoBtn">Upload Photo</button>
+                            <span class="or-divider">or</span>
+                            <input type="url" id="profilePictureUrl" placeholder="Paste image URL">
+                        </div>
+                        <div class="profile-preview" id="profilePreview"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Playing Position <span class="required">*</span></label>
+                        <div class="position-select">
+                            <label class="position-checkbox">
+                                <input type="checkbox" name="position" value="Goalkeeper">
+                                <span>🧤 Goalkeeper</span>
+                            </label>
+                            <label class="position-checkbox">
+                                <input type="checkbox" name="position" value="Defender">
+                                <span>🛡️ Defender</span>
+                            </label>
+                            <label class="position-checkbox">
+                                <input type="checkbox" name="position" value="Midfielder">
+                                <span>⚡ Midfielder</span>
+                            </label>
+                            <label class="position-checkbox">
+                                <input type="checkbox" name="position" value="Forward">
+                                <span>⚽ Forward</span>
+                            </label>
+                        </div>
+                        <div class="position-error" id="positionError" style="display: none;"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Save & Complete Registration</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content profile-modal-content">
+            <span class="close" id="closeProfile">&times;</span>
+            <h2>My Profile</h2>
+            
+            <!-- Profile View Mode -->
+            <div id="profileViewMode">
+                <div class="profile-display">
+                    <div class="profile-pic-large" id="profilePicDisplay">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="profile-info">
+                        <div class="info-item">
+                            <label>Name</label>
+                            <p id="displayName">-</p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <label>Mobile Number</label>
+                            <p id="displayMobileProfile">-</p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <label>Playing Positions</label>
+                            <div class="positions-display" id="displayPositions"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="btn btn-primary" id="editProfileBtn">Edit Profile</button>
+                        <button class="btn btn-logout" id="logoutBtnProfile">Logout</button>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary">Register</button>
-            </form>
+            </div>
+            
+            <!-- Profile Edit Mode -->
+            <div id="profileEditMode" style="display: none;">
+                <form id="editProfileForm">
+                    <div class="form-group">
+                        <label for="editName">Full Name <span class="required">*</span></label>
+                        <input type="text" id="editName" placeholder="Enter your full name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Profile Picture (Optional)</label>
+                        <div class="profile-picture-input">
+                            <input type="file" id="editProfilePictureFile" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-secondary" id="editUploadPhotoBtn">Upload Photo</button>
+                            <span class="or-divider">or</span>
+                            <input type="url" id="editProfilePictureUrl" placeholder="Paste image URL">
+                        </div>
+                        <div class="profile-preview" id="editProfilePreview"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Playing Position <span class="required">*</span></label>
+                        <div class="position-select">
+                            <label class="position-checkbox">
+                                <input type="checkbox" name="editPosition" value="Goalkeeper">
+                                <span>🧤 Goalkeeper</span>
+                            </label>
+                            <label class="position-checkbox">
+                                <input type="checkbox" name="editPosition" value="Defender">
+                                <span>🛡️ Defender</span>
+                            </label>
+                            <label class="position-checkbox">
+                                <input type="checkbox" name="editPosition" value="Midfielder">
+                                <span>⚡ Midfielder</span>
+                            </label>
+                            <label class="position-checkbox">
+                                <input type="checkbox" name="editPosition" value="Forward">
+                                <span>⚽ Forward</span>
+                            </label>
+                        </div>
+                        <div class="position-error" id="editPositionError" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
