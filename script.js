@@ -8,8 +8,15 @@ let registrationData = {
     profilePicture: '',
     positions: []
 };
+let loginData = {
+    mobile: '',
+    countryCode: '+91'
+};
 let otpTimer = null;
 let otpTimeRemaining = 30;
+let loginOtpTimer = null;
+let loginOtpTimeRemaining = 30;
+let registeredUsers = []; // Store registered users
 
 // DOM Elements
 const authButtons = document.getElementById('authButtons');
@@ -27,7 +34,14 @@ const profileModal = document.getElementById('profileModal');
 const closeLogin = document.getElementById('closeLogin');
 const closeRegister = document.getElementById('closeRegister');
 const closeProfile = document.getElementById('closeProfile');
-const loginForm = document.getElementById('loginForm');
+
+// Login form elements
+const loginMobileForm = document.getElementById('loginMobileForm');
+const loginOtpForm = document.getElementById('loginOtpForm');
+const loginSendOtpBtn = document.getElementById('loginSendOtpBtn');
+const loginResendOtpBtn = document.getElementById('loginResendOtpBtn');
+const loginOtpInputs = document.querySelectorAll('.login-otp-input');
+const loginOtpError = document.getElementById('loginOtpError');
 
 // Registration step elements
 const registerStep1 = document.getElementById('registerStep1');
@@ -60,6 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if user was previously logged in (using localStorage)
     checkLoginStatus();
     
+    // Load registered users from localStorage
+    loadRegisteredUsers();
+    
     // Setup event listeners
     setupAuthListeners();
     setupNavigationListeners();
@@ -73,6 +90,26 @@ function checkLoginStatus() {
         isLoggedIn = true;
         updateAuthUI();
     }
+}
+
+// Load registered users from localStorage
+function loadRegisteredUsers() {
+    const users = localStorage.getItem('registeredUsers');
+    if (users) {
+        registeredUsers = JSON.parse(users);
+    }
+}
+
+// Save registered users to localStorage
+function saveRegisteredUsers() {
+    localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+}
+
+// Check if user exists by mobile number
+function userExists(countryCode, mobile) {
+    return registeredUsers.find(user => 
+        user.countryCode === countryCode && user.mobile === mobile
+    );
 }
 
 // Setup authentication event listeners
@@ -91,6 +128,7 @@ function setupAuthListeners() {
     // Close modal buttons
     closeLogin.addEventListener('click', () => {
         closeModal(loginModal);
+        resetLoginFlow();
     });
 
     closeRegister.addEventListener('click', () => {
@@ -107,6 +145,7 @@ function setupAuthListeners() {
     window.addEventListener('click', (e) => {
         if (e.target === loginModal) {
             closeModal(loginModal);
+            resetLoginFlow();
         }
         if (e.target === registerModal) {
             closeModal(registerModal);
@@ -118,11 +157,25 @@ function setupAuthListeners() {
         }
     });
 
-    // Login form submission
-    loginForm.addEventListener('submit', (e) => {
+    // Login mobile form submission
+    loginMobileForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        handleLogin();
+        handleLoginSendOtp();
     });
+
+    // Login OTP form submission
+    loginOtpForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleLoginVerifyOtp();
+    });
+
+    // Login resend OTP button
+    loginResendOtpBtn.addEventListener('click', () => {
+        handleLoginResendOtp();
+    });
+
+    // Setup login OTP inputs
+    setupLoginOtpInputs();
 
     // Mobile form submission (Step 1)
     mobileForm.addEventListener('submit', (e) => {
@@ -222,29 +275,209 @@ function closeModal(modal) {
     modal.style.display = 'none';
 }
 
-// Handle login
-function handleLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
+// Handle login - Send OTP
+function handleLoginSendOtp() {
+    const mobile = document.getElementById('loginMobileNumber').value;
+    const countryCode = document.getElementById('loginCountryCode').value;
 
-    // In a real application, you would validate credentials with a backend
-    // For demo purposes, we'll simulate a successful login
-    if (email && password) {
-        currentUser = {
-            name: email.split('@')[0],
-            email: email,
-            avatar: 'https://via.placeholder.com/40'
-        };
-
-        isLoggedIn = true;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        
-        updateAuthUI();
-        closeModal(loginModal);
-        loginForm.reset();
-        
-        showNotification('Login successful!');
+    if (mobile.length !== 10) {
+        showNotification('Please enter a valid 10-digit mobile number', 'error');
+        return;
     }
+
+    // Check if user exists
+    const user = userExists(countryCode, mobile);
+    if (!user) {
+        showNotification('User not found! Please register first.', 'error');
+        setTimeout(() => {
+            closeModal(loginModal);
+            resetLoginFlow();
+            resetRegistrationFlow();
+            openModal(registerModal);
+        }, 2000);
+        return;
+    }
+
+    // Save mobile number for login
+    loginData.mobile = mobile;
+    loginData.countryCode = countryCode;
+
+    // Show OTP form
+    loginMobileForm.style.display = 'none';
+    loginOtpForm.style.display = 'block';
+    document.getElementById('loginDisplayMobile').textContent = `${countryCode} ${mobile}`;
+
+    // Start OTP timer
+    startLoginOtpTimer();
+
+    // In production, send OTP to backend
+    showNotification('OTP sent successfully!');
+}
+
+// Setup login OTP inputs
+function setupLoginOtpInputs() {
+    loginOtpInputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            const value = e.target.value;
+            
+            // Only allow numbers
+            if (!/^\d*$/.test(value)) {
+                e.target.value = '';
+                return;
+            }
+
+            // Move to next input
+            if (value && index < loginOtpInputs.length - 1) {
+                loginOtpInputs[index + 1].focus();
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            // Handle backspace
+            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                loginOtpInputs[index - 1].focus();
+            }
+        });
+
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').slice(0, 4);
+            
+            if (/^\d+$/.test(pastedData)) {
+                pastedData.split('').forEach((char, i) => {
+                    if (loginOtpInputs[i]) {
+                        loginOtpInputs[i].value = char;
+                    }
+                });
+                if (pastedData.length === 4) {
+                    loginOtpInputs[3].focus();
+                }
+            }
+        });
+    });
+}
+
+// Handle login OTP verification
+function handleLoginVerifyOtp() {
+    const otp = Array.from(loginOtpInputs).map(input => input.value).join('');
+
+    if (otp.length !== 4) {
+        showLoginOtpError('Please enter complete OTP');
+        return;
+    }
+
+    // Development: Only accept 0000
+    if (otp === '0000') {
+        hideLoginOtpError();
+        clearLoginOtpTimer();
+        
+        // Find and login user
+        const user = userExists(loginData.countryCode, loginData.mobile);
+        if (user) {
+            currentUser = { ...user };
+            isLoggedIn = true;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            updateAuthUI();
+            closeModal(loginModal);
+            resetLoginFlow();
+            
+            showNotification(`Welcome back, ${currentUser.name}!`);
+        }
+    } else {
+        showLoginOtpError('Invalid OTP. Please enter 0000 (development mode)');
+        loginOtpInputs.forEach(input => {
+            input.value = '';
+            input.classList.add('error');
+            setTimeout(() => input.classList.remove('error'), 400);
+        });
+        loginOtpInputs[0].focus();
+    }
+}
+
+// Handle login resend OTP
+function handleLoginResendOtp() {
+    // Clear previous inputs
+    loginOtpInputs.forEach(input => input.value = '');
+    loginOtpInputs[0].focus();
+    hideLoginOtpError();
+
+    // Restart timer
+    startLoginOtpTimer();
+
+    // In production, send new OTP to backend
+    showNotification('OTP resent successfully!');
+}
+
+// Start login OTP timer
+function startLoginOtpTimer() {
+    loginOtpTimeRemaining = 30;
+    loginResendOtpBtn.disabled = true;
+    updateLoginTimerDisplay();
+
+    loginOtpTimer = setInterval(() => {
+        loginOtpTimeRemaining--;
+        updateLoginTimerDisplay();
+
+        if (loginOtpTimeRemaining <= 0) {
+            clearLoginOtpTimer();
+            loginResendOtpBtn.disabled = false;
+            loginResendOtpBtn.innerHTML = 'Resend OTP';
+        }
+    }, 1000);
+}
+
+// Clear login OTP timer
+function clearLoginOtpTimer() {
+    if (loginOtpTimer) {
+        clearInterval(loginOtpTimer);
+        loginOtpTimer = null;
+    }
+}
+
+// Update login timer display
+function updateLoginTimerDisplay() {
+    document.getElementById('loginOtpTimer').textContent = loginOtpTimeRemaining;
+}
+
+// Show login OTP error
+function showLoginOtpError(message) {
+    loginOtpError.textContent = message;
+    loginOtpError.style.display = 'block';
+}
+
+// Hide login OTP error
+function hideLoginOtpError() {
+    loginOtpError.style.display = 'none';
+}
+
+// Reset login flow
+function resetLoginFlow() {
+    // Clear forms
+    if (loginMobileForm) loginMobileForm.reset();
+    if (loginOtpForm) loginOtpForm.reset();
+    
+    // Reset visibility
+    if (loginMobileForm) loginMobileForm.style.display = 'block';
+    if (loginOtpForm) loginOtpForm.style.display = 'none';
+
+    // Clear OTP inputs
+    loginOtpInputs.forEach(input => input.value = '');
+    hideLoginOtpError();
+
+    // Clear timer
+    clearLoginOtpTimer();
+
+    // Clear login data
+    loginData = {
+        mobile: '',
+        countryCode: '+91'
+    };
+}
+
+// Legacy login function (removed)
+function handleLogin() {
+    // This function is no longer used
 }
 
 // Registration Step 1: Send OTP
@@ -457,10 +690,21 @@ function handleCompleteRegistration() {
     // Create user and auto-login
     currentUser = {
         name: registrationData.name,
-        mobile: `${registrationData.countryCode} ${registrationData.mobile}`,
+        mobile: registrationData.mobile,
+        countryCode: registrationData.countryCode,
         avatar: registrationData.profilePicture || 'https://via.placeholder.com/40',
         positions: registrationData.positions
     };
+
+    // Add to registered users list
+    registeredUsers.push({
+        name: currentUser.name,
+        mobile: currentUser.mobile,
+        countryCode: currentUser.countryCode,
+        avatar: currentUser.avatar,
+        positions: currentUser.positions
+    });
+    saveRegisteredUsers();
 
     isLoggedIn = true;
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -589,7 +833,10 @@ function showProfileView() {
         document.getElementById('displayName').textContent = currentUser.name;
         
         // Update mobile
-        document.getElementById('displayMobileProfile').textContent = currentUser.mobile || 'Not provided';
+        const mobileDisplay = currentUser.countryCode 
+            ? `${currentUser.countryCode} ${currentUser.mobile}`
+            : currentUser.mobile || 'Not provided';
+        document.getElementById('displayMobileProfile').textContent = mobileDisplay;
         
         // Update positions
         const positionsDisplay = document.getElementById('displayPositions');

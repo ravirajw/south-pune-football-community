@@ -111,16 +111,43 @@
         <div class="modal-content">
             <span class="close" id="closeLogin">&times;</span>
             <h2>Login</h2>
-            <form id="loginForm">
+            
+            <!-- Mobile Number Form -->
+            <form id="loginMobileForm" class="step-form">
                 <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" required>
+                    <label for="loginMobileNumber">Mobile Number</label>
+                    <div class="mobile-input-group">
+                        <select id="loginCountryCode" class="country-code">
+                            <option value="+91" selected>🇮🇳 +91</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+971">🇦🇪 +971</option>
+                        </select>
+                        <input type="tel" id="loginMobileNumber" placeholder="Enter 10-digit mobile number" pattern="[0-9]{10}" maxlength="10" required>
+                    </div>
                 </div>
+                <button type="submit" class="btn btn-primary" id="loginSendOtpBtn">Send OTP</button>
+            </form>
+
+            <!-- OTP Verification Form (Hidden initially) -->
+            <form id="loginOtpForm" class="step-form" style="display: none;">
                 <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" required>
+                    <label>Enter 4-Digit OTP</label>
+                    <p class="otp-info">OTP sent to <span id="loginDisplayMobile"></span></p>
+                    <div class="otp-input-group">
+                        <input type="text" class="login-otp-input" maxlength="1" data-index="0">
+                        <input type="text" class="login-otp-input" maxlength="1" data-index="1">
+                        <input type="text" class="login-otp-input" maxlength="1" data-index="2">
+                        <input type="text" class="login-otp-input" maxlength="1" data-index="3">
+                    </div>
+                    <div class="otp-error" id="loginOtpError" style="display: none;"></div>
                 </div>
-                <button type="submit" class="btn btn-primary">Login</button>
+                <div class="otp-actions">
+                    <button type="button" class="btn btn-link" id="loginResendOtpBtn" disabled>
+                        Resend OTP (<span id="loginOtpTimer">30</span>s)
+                    </button>
+                </div>
+                <button type="submit" class="btn btn-primary">Verify & Login</button>
             </form>
         </div>
     </div>
