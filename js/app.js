@@ -12,9 +12,11 @@ const userAvatar = document.getElementById("userAvatar");
 const loginModal = document.getElementById("loginModal");
 const registerModal = document.getElementById("registerModal");
 const profileModal = document.getElementById("profileModal");
+const playerDetailModal = document.getElementById("playerDetailModal");
 const closeLogin = document.getElementById("closeLogin");
 const closeRegister = document.getElementById("closeRegister");
 const closeProfile = document.getElementById("closeProfile");
+const closePlayerDetail = document.getElementById("closePlayerDetail");
 
 const loginMobileForm = document.getElementById("loginMobileForm");
 const loginOtpForm = document.getElementById("loginOtpForm");
@@ -50,6 +52,7 @@ const contentSections = document.querySelectorAll(".content-section");
 document.addEventListener("DOMContentLoaded", () => {
   checkLoginStatus();
   loadRegisteredUsers();
+  loadBlockedUsers();
   setupAuthListeners();
   setupNavigationListeners();
 });
@@ -79,6 +82,10 @@ function setupAuthListeners() {
     showProfileView();
   });
 
+  closePlayerDetail.addEventListener("click", () => {
+    closeModal(playerDetailModal);
+  });
+
   window.addEventListener("click", (e) => {
     if (e.target === loginModal) {
       closeModal(loginModal);
@@ -91,6 +98,9 @@ function setupAuthListeners() {
     if (e.target === profileModal) {
       closeModal(profileModal);
       showProfileView();
+    }
+    if (e.target === playerDetailModal) {
+      closeModal(playerDetailModal);
     }
   });
 
@@ -143,8 +153,9 @@ function setupAuthListeners() {
     .addEventListener("input", handleUrlInput);
 
   userProfileBtn.addEventListener("click", () => {
-    showProfileView();
-    openModal(profileModal);
+    if (currentUser) {
+      showPlayerDetail(currentUser.countryCode, currentUser.mobile);
+    }
   });
 
   editProfileBtn.addEventListener("click", showProfileEdit);

@@ -9,6 +9,13 @@ function handleSendOtp() {
     return;
   }
 
+  // Check if this number is blocked
+  const blockIdentifier = `${countryCode}:${mobile}`;
+  if (blockedUsers.includes(blockIdentifier)) {
+    showNotification(CONFIG.messages.error.blockedUser, "error");
+    return;
+  }
+
   registrationData.mobile = mobile;
   registrationData.countryCode = countryCode;
 

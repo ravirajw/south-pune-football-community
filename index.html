@@ -78,7 +78,7 @@
                         <!-- Admins Section -->
                         <div id="adminsSection" style="display: none;">
                             <h3 class="section-heading">Admins</h3>
-                            <div id="adminsList" class="players-grid">
+                            <div id="adminsList" class="players-list">
                                 <!-- Admins will be dynamically inserted here -->
                             </div>
                         </div>
@@ -86,7 +86,7 @@
                         <!-- Players Section -->
                         <div id="playersSection" style="display: none;">
                             <h3 class="section-heading">Players</h3>
-                            <div id="playersList" class="players-grid">
+                            <div id="playersList" class="players-list">
                                 <!-- Players will be dynamically inserted here -->
                             </div>
                         </div>
@@ -316,6 +316,7 @@
                     <div class="profile-actions">
                         <button class="btn btn-primary" id="editProfileBtn">Edit Profile</button>
                         <button class="btn btn-logout" id="logoutBtnProfile">Logout</button>
+                        <button class="btn btn-danger" id="deleteAccountBtn" onclick="deleteOwnAccount()" style="background-color: #f44336;">Delete Account</button>
                     </div>
                 </div>
             </div>
@@ -371,6 +372,156 @@
         </div>
     </div>
 
+    <!-- Player Detail Modal -->
+    <div class="modal" id="playerDetailModal">
+        <div class="modal-content">
+            <span class="close" id="closePlayerDetail">&times;</span>
+            <h2>Player Details</h2>
+            
+            <!-- View Mode -->
+            <div class="player-detail-view" id="playerDetailViewMode">
+                <div class="player-detail-avatar" id="playerDetailAvatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                    </svg>
+                </div>
+                
+                <div id="playerDetailRoleBadge" style="text-align: center; margin-bottom: 1rem;"></div>
+                
+                <h3 id="playerDetailName" style="text-align: center; margin-bottom: 1.5rem;">Player Name</h3>
+                
+                <div class="player-detail-info">
+                    <div class="info-row" id="playerDetailPhoneRow">
+                        <label>Phone:</label>
+                        <span id="playerDetailPhone">+91 0000000000</span>
+                    </div>
+                    
+                    <div class="info-row">
+                        <label>Positions:</label>
+                        <div id="playerDetailPositions"></div>
+                    </div>
+                </div>
+                
+                <!-- Self Actions -->
+                <div id="playerDetailSelfActions" class="player-detail-actions" style="display: none;">
+                    <button class="btn btn-primary" onclick="enterEditMode()" style="width: 100%; margin-bottom: 0.5rem;">
+                        Edit Profile
+                    </button>
+                    
+                    <button class="btn" onclick="handlePlayerDetailDelete()" style="background-color: #ff9800; width: 100%; margin-bottom: 0.5rem;">
+                        Delete My Account
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="logout()" style="width: 100%;">
+                        Logout
+                    </button>
+                </div>
+                
+                <!-- Admin Actions (visible only to admins/super admins viewing others) -->
+                <div id="playerDetailAdminActions" class="player-detail-actions" style="display: none;">
+                    <h4 style="margin-top: 1.5rem; margin-bottom: 1rem;">Admin Actions</h4>
+                    
+                    <button class="btn btn-primary" id="playerDetailAdminToggle" onclick="handlePlayerDetailAdminToggle()" style="display: none; width: 100%; margin-bottom: 0.5rem;">
+                        Make Admin
+                    </button>
+                    
+                    <button class="btn" onclick="handlePlayerDetailDelete()" style="background-color: #ff9800; width: 100%;">
+                        Delete Player
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Edit Mode -->
+            <div class="player-detail-view" id="playerDetailEditMode" style="display: none;">
+                <form id="playerDetailEditForm">
+                    <div class="player-detail-avatar" id="playerDetailEditAvatar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                    </div>
+                    
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <input type="file" id="playerDetailAvatarInput" accept="image/*" style="display: none;">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('playerDetailAvatarInput').click()" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                            Change Picture
+                        </button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="playerDetailEditName">Name</label>
+                        <input type="text" id="playerDetailEditName" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Positions</label>
+                        <div class="positions-grid">
+                            <label class="position-label">
+                                <input type="checkbox" name="editPositions" value="Goalkeeper">
+                                <span>🧤 Goalkeeper</span>
+                            </label>
+                            <label class="position-label">
+                                <input type="checkbox" name="editPositions" value="Defender">
+                                <span>🛡️ Defender</span>
+                            </label>
+                            <label class="position-label">
+                                <input type="checkbox" name="editPositions" value="Midfielder">
+                                <span>⚙️ Midfielder</span>
+                            </label>
+                            <label class="position-label">
+                                <input type="checkbox" name="editPositions" value="Forward">
+                                <span>⚽ Forward</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions" style="margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelEditMode()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteConfirmModal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3 style="margin-bottom: 1.5rem;">Confirm Delete</h3>
+            
+            <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+                Are you sure you want to delete <strong id="deletePlayerName"></strong>?
+            </p>
+            
+            <div class="delete-options">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="deleteBlockCheckbox">
+                    <span>Also block this user</span>
+                </label>
+                
+                <div id="blockInfoText" class="block-info" style="display: none;">
+                    <div class="info-box">
+                        <strong>⚠️ What does blocking mean?</strong>
+                        <ul style="margin: 0.5rem 0 0 1.5rem; font-size: 0.9rem;">
+                            <li>User will be removed immediately</li>
+                            <li>Their mobile number will be blacklisted permanently</li>
+                            <li>They cannot register again with this number</li>
+                            <li>This action cannot be undone</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-actions" style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="closeDeleteConfirmModal()" style="flex: 1;">
+                    Cancel
+                </button>
+                <button class="btn" id="confirmDeleteBtn" onclick="confirmDeletePlayer()" style="flex: 1; background-color: #ff9800;">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Load scripts in order: config, state, utils, then feature modules, then app initialization -->
     <script src="js/config.js"></script>
     <script src="js/state.js"></script>
@@ -380,6 +531,8 @@
     <script src="js/profile.js"></script>
     <script src="js/players.js"></script>
     <script src="js/admin.js"></script>
+    <script src="js/playerManagement.js"></script>
+    <script src="js/playerDetail.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/app.js"></script>
 </body>

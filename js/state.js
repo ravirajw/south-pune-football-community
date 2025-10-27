@@ -20,3 +20,4 @@ let otpTimeRemaining = CONFIG.otpTimerDuration;
 let loginOtpTimer = null;
 let loginOtpTimeRemaining = CONFIG.otpTimerDuration;
 let registeredUsers = [];
+let blockedUsers = []; // Array to store blocked user identifiers (countryCode + mobile)

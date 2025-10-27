@@ -43,6 +43,7 @@ const CONFIG = {
   storageKeys: {
     currentUser: "currentUser",
     registeredUsers: "registeredUsers",
+    blockedUsers: "blockedUsers",
   },
 
   // Validation rules
@@ -65,6 +66,9 @@ const CONFIG = {
       mobileVerified: "Mobile verified successfully!",
       madeAdmin: "{name} is now an admin!",
       removedAdmin: "Admin role removed from {name}",
+      accountDeleted: "Your account has been deleted successfully",
+      playerDeleted: "{name} has been removed from the community",
+      playerBlocked: "{name} has been blocked and cannot register again",
     },
     error: {
       invalidMobile: "Please enter a valid 10-digit mobile number",
@@ -74,6 +78,9 @@ const CONFIG = {
       invalidName: "Please enter your name",
       selectPosition: "Please select at least one position",
       superAdminOnly: "Only super admin can perform this action",
+      blockedUser: "This mobile number is blocked and cannot register",
+      cannotDeleteSelf: "Admins cannot delete their own account. Please contact super admin.",
+      cannotBlockSuperAdmin: "Cannot block or delete super admin",
     },
   },
 

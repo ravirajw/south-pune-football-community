@@ -6,7 +6,16 @@ function handleLogout() {
     currentUser = null;
     localStorage.removeItem(CONFIG.storageKeys.currentUser);
     updateAuthUI();
+    
+    // Close player detail modal if open
+    const playerDetailModal = document.getElementById("playerDetailModal");
+    if (playerDetailModal) {
+      closeModal(playerDetailModal);
+    }
+    
+    // Close profile modal if open
     closeModal(profileModal);
+    
     showNotification(CONFIG.messages.success.logout);
 
     if (currentTab === "players") {
@@ -184,3 +193,6 @@ function handleSaveProfile() {
     loadPlayers();
   }
 }
+
+// Make logout function globally accessible
+window.logout = handleLogout;
